@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% block title %}Electricity — PulseIQ{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div style="display:flex; height:calc(100vh - 56px);">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <p class="sidebar-label" style="margin-top:0;">Electricity</p>
+
+    <a href="#overview" class="sidebar-link active">Overview</a>
+    <a href="#assets" class="sidebar-link">Assets</a>
+    <a href="#cascade" class="sidebar-link">Cascade</a>
+    <a href="#chart" class="sidebar-link">Live Chart</a>
+
+    <div class="divider" style="margin:16px 0;"></div>
+    <a href="{% url 'home' %}" class="sidebar-link">Back to home</a>
+  </aside>
+
+  <!-- Main -->
+  <main style="flex:1; overflow-y:auto; padding:32px 36px;">
+
+    <!-- KPI ROW -->
+    <div id="overview"
+         style="display:grid; grid-template-columns:repeat(4,1fr);
+                gap:1px; background:var(--border);
+                border:1px solid var(--border);
+                border-radius:12px;
+                overflow:hidden; margin-bottom:32px;">
+
+      <!-- Current Value -->
+      <div style="background:var(--surface); padding:20px 24px;">
+        <div class="kpi">
+          <span class="kpi-label">Current value</span>
+          <span class="kpi-value">
+            {% if assets %}
+              {{ assets.0.value }}
+            {% else %}
+              --
+            {% endif %}
+          </span>
+          <span class="kpi-sub">
+            {% if assets %}{{ assets.0.id }}{% endif %}
+          </span>
+        </div>
+      </div>
+
+      <!-- Active anomalies -->
+      <div style="background:var(--surface); padding:20px 24px;">
+        <div class="kpi">
+          <span class="kpi-label">Active anomalies</span>
+          <span class="kpi-value" style="color:var(--anomaly);">
+            {{ anomaly_count }}
+          </span>
+          <span class="kpi-sub">Last 24 readings</span>
+        </div>
+      </div>
+
+      <!-- Assets in anomaly -->
+      <div style="background:var(--surface); padding:20px 24px;">
+        <div class="kpi">
+          <span class="kpi-label">Assets in anomaly</span>
+          <span class="kpi-value" style="color:var(--anomaly);">
+            {{ assets_in_anomaly }}
+          </span>
+          <span class="kpi-sub">Real-time monitored</span>
+        </div>
+      </div>
+
+      <!-- Risk score -->
+      <div style="background:var(--surface); padding:20px 24px;">
+        <div class="kpi">
+          <span class="kpi-label">Risk score</span>
+          <span class="kpi-value" style="color:var(--anomaly);">
+            {{ risk_score }}
+          </span>
+          <span class="kpi-sub">Out of 100</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Controls -->
+    <div style="display:flex; gap:12px; margin-bottom:20px;">
+      <form method="GET" style="display:flex; gap:12px;">
+
+        <!-- Asset Selector -->
+        <select name="asset"
+                style="padding:8px 12px; background:var(--surface);
+                       border:1px solid var(--border);
+                       border-radius:6px;">
+          {% for asset in assets %}
+            <option value="{{ asset.id }}"
+              {% if asset.id == selected_asset %}selected{% endif %}>
+              {{ asset.id }}
+            </option>
+          {% endfor %}
+        </select>
+
+        <!-- Reading Type Selector -->
+        <select name="reading_type"
+                style="padding:8px 12px; background:var(--surface);
+                       border:1px solid var(--border);
+                       border-radius:6px;">
+
+          {% for rt in reading_types %}
+            <option value="{{ rt }}"
+            {% if rt == selected_reading_type %}selected{% endif %}>
+            {{ rt|upper }}
+        </option>
+    {% endfor %}
+</select>
+        <button type="submit"
+                style="padding:8px 14px;
+                       border-radius:6px;
+                       border:1px solid var(--border);
+                       background:var(--elevated);">
+          Apply
+        </button>
+      </form>
+    </div>
+
+    <!-- Asset Grid -->
+    <div id="assets" style="margin-bottom:32px;">
+      <p class="kpi-label" style="margin-bottom:16px;">Asset health</p>
+
+      <div style="display:grid;
+                  grid-template-columns:repeat(3,1fr);
+                  gap:12px;">
+
+        {% for asset in assets %}
+        <div class="card" style="padding:18px 20px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:14px;">
+            <span class="badge badge-{{ asset.status|lower }}">
+              {{ asset.status }}
+            </span>
+            <span style="font-size:11px; color:var(--muted);">
+              {{ asset.updated }}
+            </span>
+          </div>
+
+          <div style="font-size:13px; color:var(--muted);
+                      margin-bottom:6px; font-family:monospace;">
+            {{ asset.id }}
+          </div>
+
+          <div style="font-size:26px; font-weight:600; font-family:monospace;">
+            {{ asset.value }}
+          </div>
+
+          <div style="font-size:11px; color:var(--muted); margin-top:4px;">
+            {{ selected_reading_type|upper }}
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+    </div>
+
+    <!-- Chart Card -->
+    <div id="chart" class="card" style="padding:20px; margin-bottom:32px;">
+
+      <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+        <div>
+          <p class="kpi-label" style="margin-bottom:4px;">
+            {{ selected_reading_type|upper }} anomaly detection
+          </p>
+          <p style="font-size:13px; color:var(--muted);">
+            {{ selected_asset }} — Isolation Forest
+          </p>
+        </div>
+
+        <span class="badge badge-anomaly">
+          {{ anomaly_count }} anomalies
+        </span>
+      </div>
+
+      <canvas id="powerChart" height="90"></canvas>
+    </div>
+
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const labels = JSON.parse('{{ labels|safe|escapejs }}');
+const values = JSON.parse('{{ values|safe|escapejs }}');
+const anomalyFlags = JSON.parse('{{ anomalies|safe|escapejs }}');
+const readingType = "{{ selected_reading_type }}";
+
+function getUnit(type){
+  switch(type){
+    case "power_w": return "W";
+    case "voltage": return "V";
+    case "current_a": return "A";
+    case "energy_kwh": return "kWh";
+    default: return "";
+  }
+}
+
+const unit = getUnit(readingType);
+
+const anomalyPoints = values.map((v,i)=>
+  anomalyFlags[i] === -1 ? v : null
+);
+
+new Chart(document.getElementById('powerChart'),{
+  type:'line',
+  data:{
+    labels,
+    datasets:[
+      {
+        label:readingType.toUpperCase(),
+        data:values,
+        borderColor:'#6366F1',
+        backgroundColor:'rgba(99,102,241,0.06)',
+        tension:0.4,
+        fill:true,
+        pointRadius:0
+      },
+      {
+        label:'Anomaly',
+        data:anomalyPoints,
+        borderColor:'#EF4444',
+        backgroundColor:'#EF4444',
+        pointRadius:6,
+        borderWidth:0
+      }
+    ]
+  },
+  options:{
+    responsive:true,
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      tooltip:{
+        callbacks:{
+          label:ctx=>{
+            if(ctx.raw!=null){
+              return `${ctx.dataset.label}: ${ctx.raw.toFixed(2)} ${unit}`;
+            }
+          }
+        }
+      }
+    }
+  }
+});
+</script>
+{% endblock %}

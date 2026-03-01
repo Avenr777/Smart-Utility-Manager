@@ -1,0 +1,64 @@
+
+{% extends 'base.html' %}
+{% block title %}Water — PulseIQ{% endblock %}
+
+{% block content %}
+<div style="display: flex; height: calc(100vh - 56px);">
+
+  <!-- Sidebar — same structure as electricity -->
+  <aside class="sidebar">
+    <p class="sidebar-label" style="margin-top: 0;">Water</p>
+    <a href="#" class="sidebar-link active">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+      Overview
+    </a>
+    <div class="divider" style="margin: 16px 0;"></div>
+    <a href="{% url 'home' %}" class="sidebar-link">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"/></svg>
+      Back to home
+    </a>
+  </aside>
+
+  <!-- Main -->
+  <main style="flex: 1; overflow-y: auto; padding: 32px 36px;">
+
+    <!-- Coming soon banner -->
+    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.3); background: rgba(99,102,241,0.05); margin-bottom: 28px; font-size: 13px;">
+      <span class="dot dot-accent"></span>
+      <span style="color: var(--muted);">Water intelligence module is in development. Electrical module is live.</span>
+      <a href="{% url 'electricity' %}" style="color: var(--accent); text-decoration: none; font-weight: 500; margin-left: auto;">View electricity →</a>
+    </div>
+
+    <!-- KPI row — greyed out -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 32px; opacity: 0.4;">
+      <div style="background: var(--surface); padding: 20px 24px;">
+        <div class="kpi"><span class="kpi-label">Current flow</span><span class="kpi-value">—</span><span class="kpi-sub">No data yet</span></div>
+      </div>
+      <div style="background: var(--surface); padding: 20px 24px;">
+        <div class="kpi"><span class="kpi-label">Pressure</span><span class="kpi-value">—</span><span class="kpi-sub">No data yet</span></div>
+      </div>
+      <div style="background: var(--surface); padding: 20px 24px;">
+        <div class="kpi"><span class="kpi-label">Anomalies</span><span class="kpi-value">—</span><span class="kpi-sub">No data yet</span></div>
+      </div>
+      <div style="background: var(--surface); padding: 20px 24px;">
+        <div class="kpi"><span class="kpi-label">Risk score</span><span class="kpi-value">—</span><span class="kpi-sub">No data yet</span></div>
+      </div>
+    </div>
+
+    <!-- Placeholder -->
+    <div class="card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 320px; gap: 16px;">
+      <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--elevated); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;">
+        <svg width="22" height="22" fill="none" stroke="var(--muted)" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <div style="text-align: center;">
+        <p style="font-size: 14px; font-weight: 500; margin-bottom: 6px;">Water module coming soon</p>
+        <p style="font-size: 13px; color: var(--muted);">Hydraulic asset monitoring is next in the roadmap</p>
+      </div>
+      <a href="{% url 'electricity' %}" class="btn btn-primary" style="font-size: 13px; padding: 9px 20px;">
+        Go to Electricity Dashboard
+      </a>
+    </div>
+
+  </main>
+</div>
+{% endblock %}
